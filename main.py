@@ -1,12 +1,14 @@
 import os
 import openai
-from moviepy.editor import *
+import moviepy.editor as mp
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
+# === Load OpenAI API key from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# === Step 1: Generate script from prompt
 def generate_script(prompt):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -17,13 +19,15 @@ def generate_script(prompt):
     )
     return response.choices[0].message.content.strip()
 
+# === Step 2: Create a video from the script
 def create_video(script_text, output_file="output.mp4"):
-    background = ColorClip(size=(720, 1280), color=(0, 0, 0), duration=10)
-    txt_clip = TextClip(script_text, fontsize=40, color='white', size=(680, None), method='caption', align='center')
+    background = mp.ColorClip(size=(720, 1280), color=(0, 0, 0), duration=10)
+    txt_clip = mp.TextClip(script_text, fontsize=40, color='white', size=(680, None), method='caption', align='center')
     txt_clip = txt_clip.set_position('center').set_duration(10)
-    final_video = CompositeVideoClip([background, txt_clip])
+    final_video = mp.CompositeVideoClip([background, txt_clip])
     final_video.write_videofile(output_file, fps=24)
 
+# === Step 3: Upload video to YouTube
 def upload_to_youtube(file_path, title, description):
     creds = {
         "installed": {
@@ -60,12 +64,13 @@ def upload_to_youtube(file_path, title, description):
         media_body=media
     ).execute()
 
-    print("Video uploaded: https://youtube.com/watch?v=" + response['id'])
+    print("✅ Video uploaded: https://youtube.com/watch?v=" + response['id'])
 
+# === Main execution ===
 if __name__ == "__main__":
     prompt = "Write a 60-word motivational script about never giving up."
     script = generate_script(prompt)
-    print("Generated Script:\n", script)
+    print("📜 Generated Script:\n", script)
 
     create_video(script)
     upload_to_youtube("output.mp4", "Never Give Up | Shorts Motivation", "This video was created automatically using AI.")
