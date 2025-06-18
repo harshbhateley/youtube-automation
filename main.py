@@ -10,7 +10,7 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # === Step 2: Generate motivational script ===
 def generate_script(prompt):
-    model = genai.GenerativeModel("models/text-bison-001")  # Correct model
+    model = genai.GenerativeModel("gemini-pro") # Correct model
     response = model.generate_content(prompt)
     return response.text.strip()
 
