@@ -8,28 +8,28 @@ from googleapiclient.http import MediaFileUpload
 # === Step 1: Configure Gemini ===
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# === Step 2: Generate a short script using Gemini ===
+# === Step 2: Generate motivational script ===
 def generate_script(prompt):
     try:
-        model = genai.GenerativeModel("gemini-pro")  # ✅ Correct model
+        model = genai.GenerativeModel("gemini-pro")
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
         print("❌ Gemini Error:", e)
         return "Keep going. One day, all your hard work will pay off."
 
-# === Step 3: Create a basic vertical video ===
+# === Step 3: Create simple video (no ImageMagick dependency) ===
 def create_video(script_text, output_file="output.mp4"):
     try:
         background = mp.ColorClip(size=(720, 1280), color=(0, 0, 0), duration=10)
-        txt_clip = mp.TextClip(script_text, fontsize=40, color='white', size=(680, None), method='caption', align='center')
+        txt_clip = mp.TextClip(script_text, fontsize=40, color='white', size=(700, None), method='label')  # 'label' doesn't need ImageMagick
         txt_clip = txt_clip.set_position('center').set_duration(10)
         final_video = mp.CompositeVideoClip([background, txt_clip])
         final_video.write_videofile(output_file, fps=24)
     except Exception as e:
         print("❌ Video Creation Error:", e)
 
-# === Step 4: Upload to YouTube ===
+# === Step 4: Upload video to YouTube ===
 def upload_to_youtube(file_path, title, description):
     creds = {
         "installed": {
@@ -42,7 +42,7 @@ def upload_to_youtube(file_path, title, description):
     }
 
     flow = InstalledAppFlow.from_client_config(creds, scopes=["https://www.googleapis.com/auth/youtube.upload"])
-    credentials = flow.run_console()
+    credentials = flow.run_local_server(port=0)  # ✅ Fixes .run_console() issue
 
     youtube = build('youtube', 'v3', credentials=credentials)
 
@@ -50,7 +50,7 @@ def upload_to_youtube(file_path, title, description):
         'snippet': {
             'title': title,
             'description': description,
-            'tags': ['motivation', 'ai shorts', 'gemini'],
+            'tags': ['motivation', 'shorts'],
             'categoryId': '22'
         },
         'status': {
@@ -70,9 +70,9 @@ def upload_to_youtube(file_path, title, description):
     except Exception as e:
         print("❌ YouTube Upload Error:", e)
 
-# === Step 5: Run everything ===
+# === Step 5: Run Everything ===
 if __name__ == "__main__":
-    prompt = "Write a 60-word motivational script for a YouTube Short about never giving up."
+    prompt = "Write a short 60-word motivational script for a YouTube Short about not giving up."
     print("📤 Sending prompt to Gemini...")
     script = generate_script(prompt)
     print("📜 Generated Script:\n", script)
@@ -81,4 +81,4 @@ if __name__ == "__main__":
     create_video(script)
 
     print("📤 Uploading video to YouTube...")
-    upload_to_youtube("output.mp4", "Never Give Up | AI Motivation", "This short was created automatically using Gemini AI and Python.")
+    upload_to_youtube("output.mp4", "Never Give Up | AI Shorts", "This short was created automatically using Google Gemini.")
