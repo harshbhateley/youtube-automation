@@ -5,16 +5,16 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# === Step 1: Configure Gemini API Key ===
+# === Step 1: Configure Gemini API ===
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# === Step 2: Generate motivational script ===
+# === Step 2: Generate a short script using Gemini ===
 def generate_script(prompt):
-    model = genai.GenerativeModel("gemini-pro") # Correct model
+    model = genai.GenerativeModel(model_name="gemini-pro")  # ✅ Correct call
     response = model.generate_content(prompt)
     return response.text.strip()
 
-# === Step 3: Create video using MoviePy ===
+# === Step 3: Create a basic video using MoviePy ===
 def create_video(script_text, output_file="output.mp4"):
     background = mp.ColorClip(size=(720, 1280), color=(0, 0, 0), duration=10)
     txt_clip = mp.TextClip(script_text, fontsize=40, color='white', size=(680, None), method='caption', align='center')
@@ -22,7 +22,7 @@ def create_video(script_text, output_file="output.mp4"):
     final_video = mp.CompositeVideoClip([background, txt_clip])
     final_video.write_videofile(output_file, fps=24)
 
-# === Step 4: Upload video to YouTube ===
+# === Step 4: Upload the video to YouTube ===
 def upload_to_youtube(file_path, title, description):
     creds = {
         "installed": {
@@ -59,13 +59,12 @@ def upload_to_youtube(file_path, title, description):
         media_body=media
     ).execute()
 
-    print("✅ Video uploaded: https://youtube.com/watch?v=" + response['id'])
+    print("✅ Uploaded: https://youtube.com/watch?v=" + response['id'])
 
-# === Step 5: Run the full automation ===
+# === Run everything ===
 if __name__ == "__main__":
-    prompt = "Write a short 60-word motivational script for a YouTube short about never giving up."
+    prompt = "Write a 60-word motivational script for a YouTube Short about staying consistent."
     script = generate_script(prompt)
     print("📜 Generated Script:\n", script)
-
     create_video(script)
-    upload_to_youtube("output.mp4", "Never Give Up | Shorts Motivation", "This video was created using Google Gemini AI.")
+    upload_to_youtube("output.mp4", "Stay Consistent | Motivational Short", "This was generated and posted using Google Gemini AI.")
