@@ -10,7 +10,7 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # === Step 2: Generate a short script using Gemini ===
 def generate_script(prompt):
-    model = genai.GenerativeModel(model_name="gemini-pro")  # ✅ Correct call
+    model = genai.GenerativeModel("gemini-pro")  # ✅ Correct call
     response = model.generate_content(prompt)
     return response.text.strip()
 
